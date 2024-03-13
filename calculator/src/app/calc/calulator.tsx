@@ -1,6 +1,7 @@
 'use client'
 
 import Button from '@/app/calc/button'
+import { clear } from 'console'
 import { useRef, useState } from 'react'
 
 const operator = ['+', '-', '*', '÷']
@@ -17,16 +18,21 @@ export default function Calulator() {
   const pushNum = (n: string) => {
     console.log(`pushNum=${n}`)
     const num = parseInt(n)
-    if (
-      disp == 0 ||
-      (expressions.current.length > 0 &&
-        operator.includes(expressions.current[expressions.current.length - 1]))
+
+    // 初期値ではないか、式配列の最後の要素がオペレータの場合は表示する数値を最新化する
+    if (expressions.current.length == 0) {
+      setDisp(num)
+      expressions.current.push(num.toString())
+    } else if (
+      operator.includes(expressions.current[expressions.current.length - 1])
     ) {
       setDisp(num)
+      expressions.current.push(n)
     } else {
       let str = disp.toString()
       str += num.toString()
       setDisp(parseInt(str))
+      expressions.current[expressions.current.length - 1] = str
     }
   }
 
@@ -37,15 +43,40 @@ export default function Calulator() {
       // オペレーターを連続してプッシュした場合は置き換え
       expressions.current[expressions.current.length - 1] = o
     } else {
-      expressions.current.push(disp.toString())
       expressions.current.push(o)
     }
-
-    console.log('%o', expressions)
   }
 
   const calc = () => {
-    const result = 0
+    debugger
+    let result = 0
+    let opeStore = ''
+    expressions.current.map((elem) => {
+      if (operator.includes(elem)) {
+        opeStore = elem
+        return
+      }
+
+      switch (opeStore) {
+        case '+':
+          result = result + parseInt(elem)
+          break
+        case '-':
+          result = result - parseInt(elem)
+          break
+        case '*':
+          result = result * parseInt(elem)
+          break
+        case '÷':
+          result = result / parseInt(elem)
+          break
+        default:
+          result = parseInt(elem)
+      }
+    })
+
+    setDisp(result)
+    expressions.current = [result.toString()]
   }
 
   return (
@@ -80,7 +111,7 @@ export default function Calulator() {
         <Button text='0' onClick={() => pushNum('0')} />
         <Button text='0' onClick={() => pushNum('0')} />
         <Button text='.' />
-        <Button text='=' />
+        <Button text='=' onClick={calc} />
       </div>
     </div>
   )
